@@ -44,10 +44,15 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%r %d{HH:mm:ss.SSS} %highlight{[%-5level]} [%t-%C{1}] # %msg%n" />
         </Console>
+
+        <File name="mylogsToFile" fileName="./logs/qun-log.txt" append="true">
+            <PatternLayout pattern="%r %d{HH:mm:ss.SSS} %highlight{[%-5level]} [%t-%C{1}] # %msg%n" />
+        </File>
     </appenders>
     <loggers>
         <root level="all">
-            <appender-ref ref="Console" />
+            <appender-ref ref="Console" level="all" />
+            <appender-ref ref="mylogsToFile" level="info" />
         </root>
     </loggers>
 </configuration>

@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,21 +20,25 @@ import org.apache.logging.log4j.Logger;
 
 public class DBMainClass {
     static Logger logger = LogManager.getLogger(DBMainClass.class);
-    static final String OUT_FILENAME = "./data/b.txt";
     static boolean starting = true;
 
     static final String DRIVER_CLASS = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     static final String DB_IP = "112.24.14.203";
-    static final String DataBaseNAME = "GroupData1";
-
-    static final String DB_URL = "jdbc:sqlserver://112.24.14.203:1433; DatabaseName=";
+    static final int dbNum = 11; // 第几个分库
+    static final String DataBaseNAME = "GroupData" + dbNum;
+    static final String OUT_FILENAME = "E:/qqData/GroupDatas/" + DataBaseNAME
+	    + "/group";
+    static final String DB_URL = "jdbc:sqlserver://112.24.27.21:1433;integratedSecurity=true; DatabaseName=";
     static final String DB_USER = "sa";
     static final String DB_PWD = "123456";
-    static final String DB_SELECT_SQL = "SELECT top 10 * FROM Group2";
+    // static final String DB_SELECT_SQL = "SELECT top 10 * FROM ";
+
+    static HashMap<Integer, ArrayList<Integer>> allRange = new HashMap<>();
+
     // Declare the JDBC objects.
     static Connection connection = null;
     static Statement sqlStatement = null;
-    static ResultSet resultSet = null;
+    ResultSet resultSet = null;
 
     File outFile = null;
     static BlockingQueue<Runnable> taskQuene = new LinkedBlockingQueue<>(5); // 生产者队列
@@ -45,12 +51,13 @@ public class DBMainClass {
 	try {
 	    Class.forName(DRIVER_CLASS);
 	    connection = DriverManager.getConnection(DB_URL + DataBaseNAME,
-		    DB_USER, DB_PWD);
-	    sqlStatement = connection.createStatement();
+		    DB_USER, DB_PWD); //
+	    // sqlStatement = connection.createStatement();
 	    // resultSet = sqlStatement.executeQuery(DB_SELECT_SQL);
 
 	} catch (Exception e) {
 	    // TODO: handle exception
+	    logger.error("初始化数据库连接时报错");
 	    e.printStackTrace();
 	}
     }
@@ -99,8 +106,8 @@ public class DBMainClass {
 		try {
 		    currenTask = taskQuene.poll(100, TimeUnit.MILLISECONDS);
 		    if (currenTask != null) {
-			logger.fatal("从消费队列弹出任务："
-				+ Thread.currentThread().getId());
+			logger.fatal(
+				"从消费队列弹出任务：" + Thread.currentThread().getId());
 			taskPools.execute(currenTask);
 		    }
 		} catch (InterruptedException e) {
@@ -119,34 +126,51 @@ public class DBMainClass {
 
     }
 
+    static void initMap() {
+	for (int i = 1; i < 11; i++) {
+	    ArrayList<Integer> tmp = new ArrayList<>();
+	    tmp.add((i - 1) * 100 + 1);
+	    tmp.add(i * 100);
+	    allRange.put(i, tmp);
+	}
+	logger.trace(allRange.get(1).get(0));
+	logger.trace(allRange.get(1).get(1));
+
+    }
+
     public static void main(String[] args) throws InterruptedException {
+	logger.info("============== 程序开始： ==============\r\n");
+
 	// useThreadPool();
 	DBMainClass testClass = new DBMainClass(OUT_FILENAME);
-	ThreadPoolExecutor pools = new ThreadPoolExecutor(4, 8, 30,
-		TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(4));
+	ThreadPoolExecutor pools = new ThreadPoolExecutor(6, 10, 30,
+		TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
 	testClass.initConn();
-	int i = 1;
-	char[] wr = new char[] { '0', '1', '2', '3', '4', '5' };
 
-	while (i < 6) {// 循环查询数据库创建任务
-	    if (pools.getQueue().remainingCapacity() > 0) {
-		logger.info("添加任务" + i);
+	int i = (dbNum - 1) * 100 + 1;
+	while (i < dbNum * 100 + 1) {// 循环查询数据库创建任务,每个数字代表一个表，总共100个表；
+	    int fileNameNum = (i % 10) + 1;// 每10次改变一下文件
+	    testClass.outFile = new File(OUT_FILENAME + fileNameNum + ".txt");
+	    if (pools.getQueue().remainingCapacity() > 0) {// 有空闲才添加任务
+		String tabName = "Group" + String.valueOf(i);
+		// String tabName = "QunInfo" + String.valueOf(i) + "_hb";
+		logger.info("添加任务" + tabName);
 
-		pools.execute(new ConnectDataBase(String.valueOf(i),
-			testClass.outFile, DBMainClass.sqlStatement));
-		i++;
+		// 把connect传递给线程池复用，但是要注意好需要同步变量connection；经过测试，传递result和statment效果都不好。
+		pools.execute(new ConnectDataBase(tabName, testClass.outFile,
+			connection));
+		i++;// 准备创建查询下一个表的线程任务
 	    } else {
-		// Thread.sleep(100);
 		continue;
 	    }
 
 	}
-	logger.warn("程序结束");
+	logger.info("程序结束");
 	while (true) {
-	    if (pools.getQueue().isEmpty()) {
+	    if (pools.getQueue().isEmpty()) {// 任务池空了，没有心任务了。
 		pools.shutdown();
-		logger.info("已经关闭消费者线程池。");
-		if (pools.isTerminated()) {
+		// logger.info("已经关闭消费者线程池。");
+		if (pools.isTerminated()) { // 线程池所有线程正在执行的任务全部完成
 		    logger.info("所有任务已经执行完毕，关闭数据库连接。");
 
 		    if (sqlStatement != null)
