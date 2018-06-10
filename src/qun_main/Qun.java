@@ -3,9 +3,14 @@ package qun_main;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+
+import mapreduce.UserInfo;
 
 public class Qun {
     static Logger logger = LogManager.getLogger(Qun.class);
@@ -37,6 +42,21 @@ public class Qun {
 	logger.trace(range.get(1));
 	logger.trace(range.get(1).get(0));
 	logger.trace(range.get(1).get(1));
+	Gson temp = new Gson();
+	UserInfo userInfo = new UserInfo("3935212", "haha", "18", "1", "5",
+		"182728");
+
+	Map<String, String> mapGroup = new HashMap<>();
+	mapGroup.put("groupNum", "qw111");
+	mapGroup.put("nick", "赵日天");
+	mapGroup.put("position", "2");
+	// userInfo.addGroup(mapGroup);
+
+	String jsonObj = temp.toJson(userInfo);
+	logger.info(jsonObj);
+	logger.info(temp.toJson("111111"));
+	logger.info(temp.fromJson("\"99.99\"", double.class));
+
     }
 
 }

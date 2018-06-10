@@ -1,0 +1,12 @@
+{
+	"namespace": "example.avro",
+	"type": "record",
+	"name": "UserInfoAvro",
+	"fields": [
+		{"name": "qqNum","type": "string"},
+		{"name": "age","type": "int"},
+		{"name": "sex","type": "int"},
+		{"name": "groups","type": {"type": "array","items": "Group"}
+		}
+	]
+}

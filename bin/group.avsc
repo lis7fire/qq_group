@@ -1,0 +1,10 @@
+{
+	"namespace": "example.avro",
+	"type": "record",
+	"name": "Group",
+	"fields": [
+		{"name": "groupNum","type": "string"},
+		{"name": "nick","type": "string"},	
+		{"name": "diwei","type": "int"}
+	]
+}

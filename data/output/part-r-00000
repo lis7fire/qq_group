@@ -1,0 +1,3 @@
+33	{"qqNUM":"33","age":"17","sex":"0","groupCount":3,"groups":[{"groupNum":"张三group3","nick":"张三","position":"1"},{"groupNum":"张三group2","nick":"张三","position":"1"},{"groupNum":"张三group1","nick":"张三","position":"1"}]}
+44	{"qqNUM":"44","age":"16","sex":"1","groupCount":2,"groups":[{"groupNum":"李四group2","nick":"李四","position":"1"},{"groupNum":"李四group1","nick":"李四","position":"1"}]}
+55	{"qqNUM":"55","age":"15","sex":"0","groupCount":1,"groups":[{"groupNum":"王五group1","nick":"王五","position":"1"}]}

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://192.168.56.101:9000</value>
+    </property>
+
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+
+    <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>192.168.56.101:8032</value>
+    </property>
+
+
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>file:/usr/local/hadoop-2.6.0/tmp</value>
+        <description>Abase for other temporary directories.</description>
+    </property>
+
+
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:/usr/local/hadoop-2.6.0/tmp/dfs/name</value>
+    </property>
+
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:/usr/local/hadoop-2.6.0/tmp/dfs/data</value>
+    </property>
+</configuration>
